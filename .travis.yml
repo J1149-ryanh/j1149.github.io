@@ -1,14 +1,33 @@
-language: ruby
-rvm:
-  - 2.3.0
-env:
-  - TRAVIS_NODE_VERSION="9.3.0"
+matrix:
+  include:
+    - language: ruby
+    rvm:
+      - 2.3.0
+    env:
+      - TRAVIS_NODE_VERSION="9.3.0"
 
-install:
-  - npm install
-  - gem install bundler --version '>=1.17.1'
-  - bundle install
+    install:
+      - npm install
+      - gem install bundler --version '>=1.17.1'
+      - bundle install
 
-script:
-  - npm run test
-  - bundle exec jekyll build
+    script:
+      - npm run test
+      - bundle exec jekyll build
+
+    - language: python
+      python: 3.7
+      services:
+        - docker
+      before install:
+        - docker build -t "paicoin_repl_server_git_test:v1" https://github.com/J1149-ryanh/paicoin-repl-server.git#master:docker
+        - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+        - chmod +x miniconda.sh
+        - ./miniconda.sh -b
+        - export PATH=/home/travis/miniconda/bin:$PATH
+        - conda update --yes conda
+      install:
+        - conda create -f ./install/conda/environment.yml
+        - source activate J1149-Bench
+      script: pytest
+
